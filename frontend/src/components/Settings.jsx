@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import { Save, Play, Square, AlertTriangle } from 'lucide-react'
 
-export default function Settings() {
+export default function Settings({ isDemo }) {
   const [cfg, setCfg] = useState(null)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState(null)
@@ -44,6 +44,14 @@ export default function Settings() {
 
   return (
     <div className="max-w-lg space-y-6">
+
+      {/* Demo notice */}
+      {isDemo && (
+        <div className="card border-yellow-700/50 bg-yellow-900/20 text-yellow-300 text-sm">
+          <strong>Demo mode</strong> — settings and engine controls are read-only here.
+          Run the backend locally to make live changes.
+        </div>
+      )}
 
       {/* Engine controls */}
       <div className="card space-y-3">

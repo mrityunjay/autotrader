@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
-import { createWebSocket } from './api/client'
+import { useState, useEffect } from 'react'
+import { createWebSocket, getConnectionMode } from './api/client'
 import Dashboard from './components/Dashboard'
 import Positions from './components/Positions'
 import TradeLog from './components/TradeLog'
 import StockScorer from './components/StockScorer'
 import Settings from './components/Settings'
-import { Activity, LayoutDashboard, List, BarChart2, Settings2 } from 'lucide-react'
+import { Activity, LayoutDashboard, List, BarChart2, Settings2, FlaskConical, Wifi } from 'lucide-react'
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -18,12 +18,14 @@ const TABS = [
 export default function App() {
   const [tab, setTab] = useState('dashboard')
   const [liveData, setLiveData] = useState(null)
+  const [mode, setMode] = useState(null)   // 'live' | 'demo'
 
   useEffect(() => {
+    getConnectionMode().then(setMode)
     const ws = createWebSocket((data) => {
       if (data.type === 'update') setLiveData(data)
     })
-    return () => ws.close()
+    return () => ws?.close()
   }, [])
 
   const status  = liveData?.status    || null
@@ -31,6 +33,23 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Demo mode banner */}
+      {mode === 'demo' && (
+        <div className="flex items-center justify-center gap-2 bg-yellow-900/60 border-b border-yellow-700 px-4 py-2 text-yellow-300 text-xs">
+          <FlaskConical size={13} />
+          <span>
+            <strong>Demo mode</strong> — showing simulated data. Prices update live to show how the dashboard behaves.
+            To connect real trading, run the backend locally and open <strong>http://localhost:5173</strong>
+          </span>
+        </div>
+      )}
+      {mode === 'live' && (
+        <div className="flex items-center justify-center gap-2 bg-green-900/40 border-b border-green-800 px-4 py-2 text-green-400 text-xs">
+          <Wifi size={13} />
+          <span>Connected to live backend</span>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 bg-gray-900 border-b border-gray-800">
         <div className="flex items-center gap-2">
@@ -73,7 +92,7 @@ export default function App() {
         {tab === 'positions' && <Positions livePositions={livePos} />}
         {tab === 'trades'    && <TradeLog />}
         {tab === 'scorer'    && <StockScorer />}
-        {tab === 'settings'  && <Settings />}
+        {tab === 'settings'  && <Settings isDemo={mode === 'demo'} />}
       </main>
     </div>
   )
